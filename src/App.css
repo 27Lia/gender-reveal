@@ -154,12 +154,28 @@
   gap: 12px;
 }
 
+.balloon-anchor {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
 .balloon-emoji {
   font-size: clamp(80px, 20vw, 160px);
   filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.4));
-  transition: transform 0.1s;
   animation: bob 2.5s ease-in-out infinite;
-  will-change: transform;
+  display: block;
+  transition: filter 0.1s;
+}
+
+.balloon-emoji.scared {
+  animation: scareBob 0.12s ease-in-out infinite alternate !important;
+}
+
+@keyframes scareBob {
+  from { transform: rotate(-10deg) scale(0.93); }
+  to   { transform: rotate(10deg)  scale(1.07); }
 }
 
 .balloon-emoji.near {
@@ -298,6 +314,35 @@
 .restart-btn:hover {
   background: rgba(255, 255, 255, 0.3);
   transform: translateY(-2px);
+}
+
+/* ── Countdown ── */
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.countdown-number {
+  font-size: clamp(140px, 35vw, 220px);
+  font-weight: 900;
+  font-family: 'Nunito', sans-serif;
+  color: #fff;
+  text-shadow: 0 0 60px white, 0 6px 20px black;
+  animation: countPop 0.95s ease-out both;
+  display: block;
+}
+
+@keyframes countPop {
+  0%   { transform: scale(2.2); opacity: 0; }
+  25%  { transform: scale(0.88); opacity: 1; }
+  55%  { transform: scale(1.04); opacity: 1; }
+  80%  { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(0.6);  opacity: 0; }
 }
 
 /* ── REC badge ── */
