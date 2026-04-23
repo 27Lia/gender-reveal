@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 
 const CONFIG = {
   boy: {
@@ -17,9 +17,21 @@ const CONFIG = {
   },
 }
 
-export default function Reveal({ gender, onRestart }) {
+export default function Reveal({ gender, onRestart, recordingBlob }) {
   const canvasRef = useRef(null)
   const cfg = CONFIG[gender] ?? CONFIG.girl
+  const [showVideo, setShowVideo] = useState(false)
+
+  const videoUrl = useMemo(() => {
+    if (!recordingBlob) return null
+    return URL.createObjectURL(recordingBlob)
+  }, [recordingBlob])
+
+  useEffect(() => {
+    return () => {
+      if (videoUrl) URL.revokeObjectURL(videoUrl)
+    }
+  }, [videoUrl])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -74,6 +86,14 @@ export default function Reveal({ gender, onRestart }) {
     }
   }, [cfg.colors])
 
+  const handleDownload = () => {
+    if (!videoUrl) return
+    const a = document.createElement('a')
+    a.href = videoUrl
+    a.download = 'gender-reveal-reaction.webm'
+    a.click()
+  }
+
   return (
     <div className="reveal" style={{ background: cfg.bg }}>
       <canvas ref={canvasRef} className="confetti-canvas" />
@@ -81,10 +101,31 @@ export default function Reveal({ gender, onRestart }) {
         <div className="reveal-icon">{cfg.icon}</div>
         <h1 className="reveal-label">{cfg.label}</h1>
         <p className="reveal-sub">{cfg.sub}</p>
+        {recordingBlob && (
+          <button className="reaction-btn" onClick={() => setShowVideo(true)}>
+            📹 반응 영상 보기
+          </button>
+        )}
         <button className="restart-btn" onClick={onRestart}>
           다시 하기
         </button>
       </div>
+
+      {showVideo && videoUrl && (
+        <div className="video-modal" onClick={() => setShowVideo(false)}>
+          <div className="video-modal-inner" onClick={(e) => e.stopPropagation()}>
+            <video src={videoUrl} controls autoPlay className="reaction-video" />
+            <div className="video-modal-actions">
+              <button className="download-btn" onClick={handleDownload}>
+                ⬇️ 다운로드
+              </button>
+              <button className="close-btn" onClick={() => setShowVideo(false)}>
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

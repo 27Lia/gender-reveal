@@ -5,10 +5,11 @@ const BALLOON_Y = 0.42;
 const BALLOON_RADIUS = 0.13;
 const TIPS = [4, 8, 12, 16, 20];
 
-export default function CameraView({ onPop }) {
+export default function CameraView({ onPop, onRecordingReady }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const cameraRef = useRef(null);
+  const recorderRef = useRef(null);
   const poppedRef = useRef(false);
   const prevNearRef = useRef(false);
 
@@ -16,12 +17,59 @@ export default function CameraView({ onPop }) {
   const [debugInfo, setDebugInfo] = useState("로딩중...");
   const [handNear, setHandNear] = useState(false);
   const [popping, setPopping] = useState(false);
+  const [recording, setRecording] = useState(false);
+
+  const startRecording = useCallback(
+    (stream) => {
+      if (!stream || !window.MediaRecorder) return;
+      const mimeType =
+        [
+          "video/webm;codecs=vp9,opus",
+          "video/webm;codecs=vp8,opus",
+          "video/webm",
+          "video/mp4",
+        ].find((m) => MediaRecorder.isTypeSupported(m)) || "";
+
+      try {
+        const recorder = new MediaRecorder(
+          stream,
+          mimeType ? { mimeType } : {},
+        );
+        const chunks = [];
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunks.push(e.data);
+        };
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, {
+            type: recorder.mimeType || "video/webm",
+          });
+          onRecordingReady?.(blob);
+        };
+        recorder.start(100);
+        recorderRef.current = recorder;
+        setRecording(true);
+      } catch (e) {
+        console.warn("Recording failed:", e);
+      }
+    },
+    [onRecordingReady],
+  );
 
   const handlePop = useCallback(() => {
     if (poppedRef.current) return;
     poppedRef.current = true;
     setPopping(true);
+
+    // 애니메이션 끝나면 바로 reveal
     setTimeout(() => onPop(), 500);
+
+    // reveal 넘어간 후에도 3초 더 녹화해서 반응 캡처
+    setTimeout(() => {
+      if (recorderRef.current?.state === "recording") {
+        recorderRef.current.stop();
+      }
+      cameraRef.current?.stop();
+    }, 3500);
   }, [onPop]);
 
   useEffect(() => {
@@ -29,7 +77,6 @@ export default function CameraView({ onPop }) {
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    // Wait until CDN scripts are loaded
     let waited = 0;
     function waitForMediaPipe() {
       if (window.Hands && window.Camera) {
@@ -64,16 +111,11 @@ export default function CameraView({ onPop }) {
         const cH = (canvas.height = canvas.offsetHeight);
         const ctx = canvas.getContext("2d");
 
-        ctx.save(); // 현재 상태 저장//
+        ctx.save();
         ctx.clearRect(0, 0, cW, cH);
-
-        // 1. 캔버스 전체를 수평 반전 (비디오의 scaleX(-1)과 일치시킴)
         ctx.translate(cW, 0);
         ctx.scale(-1, 1);
 
-        // --- 이제부터 그리는 모든 것은 반전되어 그려집니다 ---//
-
-        // 풍선 히트 존 (반전된 상태에서 그려야 하므로 좌표 계산은 동일)
         ctx.beginPath();
         ctx.arc(
           BALLOON_X * cW,
@@ -94,7 +136,6 @@ export default function CameraView({ onPop }) {
         let near = false;
 
         for (const hand of landmarks) {
-          // 스켈레톤 그리기
           window.drawConnectors(ctx, hand, window.HAND_CONNECTIONS, {
             color: "rgba(0,255,180,0.8)",
             lineWidth: 2.5,
@@ -105,7 +146,6 @@ export default function CameraView({ onPop }) {
             radius: (data) => (TIPS.includes(data.index) ? 8 : 4),
           });
 
-          // 충돌 체크 (좌표 계산 로직은 동일하게 유지)
           if (!poppedRef.current) {
             for (const idx of TIPS) {
               const lm = hand[idx];
@@ -124,7 +164,7 @@ export default function CameraView({ onPop }) {
           }
         }
 
-        ctx.restore(); // 반전 상태 복구 (다음 프레임을 위해)
+        ctx.restore();
 
         if (near !== prevNearRef.current) {
           prevNearRef.current = near;
@@ -146,6 +186,7 @@ export default function CameraView({ onPop }) {
         .then(() => {
           setStatus("ready");
           setDebugInfo("손: 0개 감지");
+          startRecording(video.srcObject);
         })
         .catch((err) => {
           setDebugInfo(`에러: ${err.message?.slice(0, 80)}`);
@@ -154,14 +195,27 @@ export default function CameraView({ onPop }) {
     }
 
     return () => {
-      cameraRef.current?.stop();
+      // 팝이 됐으면 타이머가 3.5초 후에 알아서 종료
+      if (!poppedRef.current) {
+        cameraRef.current?.stop();
+        if (recorderRef.current?.state === "recording") {
+          recorderRef.current.stop();
+        }
+      }
     };
-  }, [handlePop]);
+  }, [handlePop, startRecording]);
 
   return (
     <div className="camera-view">
       <video ref={videoRef} className="camera-feed" muted playsInline />
       <canvas ref={canvasRef} className="hand-canvas" />
+
+      {recording && (
+        <div className="rec-badge">
+          <span className="rec-dot" />
+          REC
+        </div>
+      )}
 
       <div
         style={{
