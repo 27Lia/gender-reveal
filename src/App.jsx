@@ -41,10 +41,6 @@ export default function App() {
           <button className="start-btn" onClick={() => setPhase("camera")}>
             카메라 켜기
           </button>
-          <p className="hint-small">
-            URL에 <code>?gender=boy</code> 또는 <code>?gender=girl</code> 을
-            붙여 성별을 미리 지정할 수 있어요
-          </p>
         </div>
       )}
 
