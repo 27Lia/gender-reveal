@@ -71,7 +71,7 @@ export default function CameraView({ onPop }) {
         ctx.translate(cW, 0);
         ctx.scale(-1, 1);
 
-        // --- 이제부터 그리는 모든 것은 반전되어 그려집니다 ---
+        // --- 이제부터 그리는 모든 것은 반전되어 그려집니다 ---//
 
         // 풍선 히트 존 (반전된 상태에서 그려야 하므로 좌표 계산은 동일)
         ctx.beginPath();
