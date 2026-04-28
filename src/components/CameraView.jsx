@@ -2,15 +2,54 @@ import { useRef, useEffect, useState, useCallback } from "react";
 
 const BALLOON_RADIUS = 0.13;
 const TIPS = [4, 8, 12, 16, 20];
-
 const GAUGE_SPEED = 2.5;
 const DECAY_SPEED = 1.0;
+const BALLOON_X = 0.5;
+const BALLOON_Y = 0.42;
 
-// 풍선 도망 물리
-const SCARE_RADIUS = 0.32;  // 이 거리 안에 들어오면 도망 시작
-const ESCAPE_FORCE = 0.026; // 도망 힘
-const FRICTION = 0.80;      // 속도 감쇠 (낮을수록 빨리 멈춤)
-const BOUNCE_DAMP = 0.5;    // 벽 반사 에너지 손실
+function PlaidBalloon({ gauge }) {
+  const scale = 1 + (gauge / 100) * 0.3;
+  const glow = gauge / 4;
+  return (
+    <svg
+      style={{
+        width: "min(28vw, 180px)",
+        height: "min(38vw, 240px)",
+        transform: `scale(${scale})`,
+        filter: `drop-shadow(0 0 ${glow}px rgba(255,255,255,0.85))`,
+        transition: "transform 0.12s ease-out",
+        display: "block",
+      }}
+      viewBox="0 0 130 195"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <pattern id="grid-cam" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+          <rect width="18" height="18" fill="#ede4d8"/>
+          <line x1="0" y1="0" x2="18" y2="0" stroke="#c8baa8" strokeWidth="1.3"/>
+          <line x1="0" y1="9" x2="18" y2="9" stroke="#d8ccc0" strokeWidth="0.7"/>
+          <line x1="0" y1="18" x2="18" y2="18" stroke="#c8baa8" strokeWidth="1.3"/>
+          <line x1="0" y1="0" x2="0" y2="18" stroke="#c8baa8" strokeWidth="1.3"/>
+          <line x1="9" y1="0" x2="9" y2="18" stroke="#d8ccc0" strokeWidth="0.7"/>
+          <line x1="18" y1="0" x2="18" y2="18" stroke="#c8baa8" strokeWidth="1.3"/>
+        </pattern>
+        <radialGradient id="shine-cam" cx="35%" cy="28%" r="55%">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.6)"/>
+          <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+        </radialGradient>
+        <radialGradient id="edge-cam" cx="50%" cy="50%" r="50%">
+          <stop offset="70%" stopColor="rgba(255,255,255,0)"/>
+          <stop offset="100%" stopColor="rgba(140,110,80,0.25)"/>
+        </radialGradient>
+      </defs>
+      <ellipse cx="65" cy="65" rx="56" ry="60" fill="url(#grid-cam)"/>
+      <ellipse cx="65" cy="65" rx="56" ry="60" fill="url(#shine-cam)"/>
+      <ellipse cx="65" cy="65" rx="56" ry="60" fill="url(#edge-cam)"/>
+      <ellipse cx="65" cy="127" rx="5" ry="4" fill="#c8baa8"/>
+      <path d="M65 131 Q58 150 65 165 Q72 178 65 190" stroke="#c8baa8" strokeWidth="1.3" fill="none" strokeLinecap="round"/>
+    </svg>
+  );
+}
 
 export default function CameraView({ onPop, onRecordingReady }) {
   const videoRef = useRef(null);
@@ -18,9 +57,6 @@ export default function CameraView({ onPop, onRecordingReady }) {
   const cameraRef = useRef(null);
   const recorderRef = useRef(null);
   const poppedRef = useRef(false);
-  // 풍선 물리 상태 (ref: 매 프레임 업데이트, state: 렌더링용)
-  const balloonPosRef = useRef({ x: 0.5, y: 0.42 }); // display space (0=왼쪽, 1=오른쪽)
-  const balloonVelRef = useRef({ x: 0, y: 0 });
 
   const [status, setStatus] = useState("loading");
   const [debugInfo, setDebugInfo] = useState("로딩중...");
@@ -28,8 +64,6 @@ export default function CameraView({ onPop, onRecordingReady }) {
   const [recording, setRecording] = useState(false);
   const [gauge, setGauge] = useState(0);
   const [countdown, setCountdown] = useState(null);
-  const [balloonPos, setBalloonPos] = useState({ x: 0.5, y: 0.42 });
-  const [balloonScared, setBalloonScared] = useState(false);
 
   const startRecording = useCallback(
     (stream) => {
@@ -42,13 +76,18 @@ export default function CameraView({ onPop, onRecordingReady }) {
           "video/mp4",
         ].find((m) => MediaRecorder.isTypeSupported(m)) || "";
       try {
-        const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+        const recorder = new MediaRecorder(
+          stream,
+          mimeType ? { mimeType } : {},
+        );
         const chunks = [];
         recorder.ondataavailable = (e) => {
           if (e.data.size > 0) chunks.push(e.data);
         };
         recorder.onstop = () => {
-          const blob = new Blob(chunks, { type: recorder.mimeType || "video/webm" });
+          const blob = new Blob(chunks, {
+            type: recorder.mimeType || "video/webm",
+          });
           onRecordingReady?.(blob);
         };
         recorder.start(100);
@@ -81,7 +120,8 @@ export default function CameraView({ onPop, onRecordingReady }) {
     }, 600);
 
     setTimeout(() => {
-      if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+      if (recorderRef.current?.state === "recording")
+        recorderRef.current.stop();
       cameraRef.current?.stop();
     }, 4500);
   }, [onPop]);
@@ -127,7 +167,10 @@ export default function CameraView({ onPop, onRecordingReady }) {
 
         const ctx = canvas.getContext("2d");
 
-        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        if (
+          canvas.width !== video.videoWidth ||
+          canvas.height !== video.videoHeight
+        ) {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
         }
@@ -137,13 +180,10 @@ export default function CameraView({ onPop, onRecordingReady }) {
 
         ctx.clearRect(0, 0, cW, cH);
 
-        // 풍선 가이드 원
-        // canvas는 CSS scaleX(-1) → display space x를 canvas pixel로: (1 - bx) * cW
-        const bx = balloonPosRef.current.x;
-        const by = balloonPosRef.current.y;
+        // guide circle (canvas has CSS scaleX(-1), so mirror x)
         ctx.beginPath();
-        ctx.arc((1 - bx) * cW, by * cH, BALLOON_RADIUS * cW, 0, Math.PI * 2);
-        ctx.strokeStyle = "rgba(255,255,255,0.25)";
+        ctx.arc((1 - BALLOON_X) * cW, BALLOON_Y * cH, BALLOON_RADIUS * cW, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(255,255,255,0.18)";
         ctx.setLineDash([6, 5]);
         ctx.lineWidth = 2;
         ctx.stroke();
@@ -153,7 +193,6 @@ export default function CameraView({ onPop, onRecordingReady }) {
         setDebugInfo(`손 감지: ${landmarks.length}`);
 
         let isInside = false;
-        let scared = false;
 
         for (const hand of landmarks) {
           window.drawConnectors(ctx, hand, window.HAND_CONNECTIONS, {
@@ -170,48 +209,17 @@ export default function CameraView({ onPop, onRecordingReady }) {
             for (const idx of TIPS) {
               const lm = hand[idx];
               if (!lm) continue;
-
-              // MediaPipe 좌표 → display space (canvas CSS scaleX(-1) 보정)
               const hx = 1 - lm.x;
               const hy = lm.y;
-              const dx = hx - balloonPosRef.current.x;
-              const dy = hy - balloonPosRef.current.y;
+              const dx = hx - BALLOON_X;
+              const dy = hy - BALLOON_Y;
               const dist = Math.sqrt(dx * dx + dy * dy);
-
-              if (dist < SCARE_RADIUS) {
-                scared = true;
-                // 손 반대 방향으로 도망 힘 적용
-                const force = ESCAPE_FORCE * (1 - dist / SCARE_RADIUS);
-                balloonVelRef.current.x -= (dx / dist) * force;
-                balloonVelRef.current.y -= (dy / dist) * force;
-              }
-              if (dist < BALLOON_RADIUS) {
-                isInside = true;
-              }
+              if (dist < BALLOON_RADIUS) isInside = true;
             }
           }
         }
 
-        // 물리 시뮬레이션
         if (!poppedRef.current) {
-          const pos = balloonPosRef.current;
-          const vel = balloonVelRef.current;
-
-          vel.x *= FRICTION;
-          vel.y *= FRICTION;
-          pos.x += vel.x;
-          pos.y += vel.y;
-
-          // 벽 반사
-          if (pos.x < 0.10) { pos.x = 0.10; vel.x = Math.abs(vel.x) * BOUNCE_DAMP; }
-          if (pos.x > 0.90) { pos.x = 0.90; vel.x = -Math.abs(vel.x) * BOUNCE_DAMP; }
-          if (pos.y < 0.08) { pos.y = 0.08; vel.y = Math.abs(vel.y) * BOUNCE_DAMP; }
-          if (pos.y > 0.88) { pos.y = 0.88; vel.y = -Math.abs(vel.y) * BOUNCE_DAMP; }
-
-          setBalloonPos({ x: pos.x, y: pos.y });
-          setBalloonScared(scared);
-
-          // 게이지
           setGauge((prev) => {
             if (isInside) {
               const next = prev + GAUGE_SPEED;
@@ -251,7 +259,8 @@ export default function CameraView({ onPop, onRecordingReady }) {
     return () => {
       if (!poppedRef.current) {
         cameraRef.current?.stop();
-        if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+        if (recorderRef.current?.state === "recording")
+          recorderRef.current.stop();
       }
     };
   }, [handlePop, startRecording]);
@@ -287,19 +296,15 @@ export default function CameraView({ onPop, onRecordingReady }) {
 
       {status === "ready" && (
         <>
-          {/* 풍선 이모지: display space 좌표로 절대 위치 */}
           <div
             className="balloon-anchor"
-            style={{ left: `${balloonPos.x * 100}%`, top: `${balloonPos.y * 100}%` }}
+            style={{
+              left: `${BALLOON_X * 100}%`,
+              top: `${BALLOON_Y * 100}%`,
+            }}
           >
-            <div
-              className={`balloon-emoji${popping ? " popping" : ""}${balloonScared ? " scared" : ""}`}
-              style={{
-                transform: `scale(${1 + (gauge / 100) * 0.3})`,
-                filter: `drop-shadow(0 0 ${gauge / 4}px white)`,
-              }}
-            >
-              🎈
+            <div className={popping ? "cam-pop-anim" : ""}>
+              <PlaidBalloon gauge={popping ? 100 : gauge} />
             </div>
           </div>
 
@@ -309,7 +314,9 @@ export default function CameraView({ onPop, onRecordingReady }) {
                 <div className="gauge-fill" style={{ width: `${gauge}%` }} />
               </div>
               <p className="gauge-text">
-                {gauge > 0 ? "더 꾹 누르세요! ✊" : "✋ 풍선을 손으로 누르세요!"}
+                {gauge > 0
+                  ? "더 꾹 누르세요! ✊"
+                  : "✋ 풍선을 손으로 누르세요!"}
               </p>
             </div>
           )}

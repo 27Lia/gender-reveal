@@ -11,91 +11,131 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding: 40px 24px;
+  justify-content: center;
+  width: 100%;
+  min-height: 100%;
+  padding: 32px 24px 40px;
   text-align: center;
+  background: #faf7f4;
+  color: #6b5b4e;
+  gap: 0;
 }
 
-.intro-balloon {
-  font-size: 100px;
-  animation: float 3s ease-in-out infinite;
-  filter: drop-shadow(0 0 30px rgba(255, 120, 180, 0.6));
+.intro-balloons {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-18px);
-  }
+.balloon-svg {
+  width: 130px;
+  height: 195px;
+  filter: drop-shadow(0 8px 20px rgba(0,0,0,0.08));
 }
 
-.intro h1 {
-  font-size: clamp(36px, 8vw, 64px);
-  font-weight: 900;
-  background: linear-gradient(135deg, #f9a8d4, #60a5fa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.balloon-blue {
+  animation: floatA 3.8s ease-in-out infinite;
+  transform-origin: bottom center;
 }
 
-.intro p {
-  font-size: clamp(16px, 4vw, 20px);
-  color: rgba(255, 255, 255, 0.7);
-  line-height: 1.6;
+.balloon-pink {
+  animation: floatB 4.2s ease-in-out infinite 0.6s;
+  transform-origin: bottom center;
+}
+
+@keyframes floatA {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%       { transform: translateY(-16px) rotate(2deg); }
+}
+
+@keyframes floatB {
+  0%, 100% { transform: translateY(0) rotate(2deg); }
+  50%       { transform: translateY(-20px) rotate(-2deg); }
+}
+
+.intro-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 36px;
+}
+
+.intro-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(30px, 8vw, 50px);
+  font-weight: 600;
+  color: #7a6558;
+  letter-spacing: 0.04em;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.intro-script {
+  font-family: 'Dancing Script', cursive;
+  font-size: clamp(20px, 5vw, 30px);
+  font-weight: 500;
+  color: #a08878;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.intro-divider {
+  margin: 10px 0 6px;
+  color: #c8b0a0;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+}
+
+.intro-names {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(13px, 3.2vw, 17px);
+  letter-spacing: 0.28em;
+  color: #b0988a;
+  text-transform: uppercase;
+  font-weight: 400;
+  margin: 0;
 }
 
 .start-btn {
-  margin-top: 8px;
-  padding: 16px 40px;
-  font-family: "Nunito", sans-serif;
-  font-size: 20px;
-  font-weight: 800;
-  border: none;
-  border-radius: 50px;
-  background: linear-gradient(135deg, #ec4899, #3b82f6);
-  color: #fff;
+  font-family: 'Cormorant Garamond', 'Playfair Display', serif;
+  font-size: clamp(14px, 3.5vw, 17px);
+  font-style: italic;
+  letter-spacing: 0.18em;
+  color: #9a7f72;
+  background: transparent;
+  border: 1px solid #c8b0a0;
+  border-radius: 40px;
+  padding: 13px 40px;
   cursor: pointer;
-  transition:
-    transform 0.15s,
-    box-shadow 0.15s;
-  box-shadow: 0 8px 30px rgba(236, 72, 153, 0.4);
+  transition: background 0.2s, color 0.2s, transform 0.15s;
 }
 
 .start-btn:hover {
-  transform: translateY(-3px) scale(1.04);
-  box-shadow: 0 12px 40px rgba(236, 72, 153, 0.6);
+  background: #f0e8e2;
+  color: #7a6558;
+  transform: translateY(-2px);
 }
 
 .start-btn:active {
-  transform: translateY(0) scale(0.98);
-}
-
-.hint-small {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.35);
-  max-width: 320px;
-}
-
-.hint-small code {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
+  transform: translateY(0);
 }
 
 /* ── Camera View ── */
 .camera-view {
   position: relative;
-  width: 100%;
-  height: 100%;
-  background: #000;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
+  background: black;
 }
 
-.camera-feed {
+.camera-feed,
+.hand-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -103,17 +143,72 @@
 }
 
 .hand-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
   pointer-events: none;
   z-index: 5;
-  transform: scaleX(-1);
 }
 
 .balloon-layer {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.balloon-anchor {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
   z-index: 10;
+}
+
+.balloon-emoji {
+  font-size: clamp(80px, 20vw, 160px);
+  filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.4));
+  animation: bob 2.5s ease-in-out infinite;
+  display: block;
+  transition: filter 0.1s;
+  cursor: none;
+  transition: transform 0.1s ease-out;
+}
+
+.balloon-emoji.scared {
+  animation: scareBob 0.12s ease-in-out infinite alternate !important;
+}
+
+@keyframes scareBob {
+  from { transform: rotate(-10deg) scale(0.93); }
+  to   { transform: rotate(10deg)  scale(1.07); }
+}
+
+.balloon-emoji.near {
+  animation: none;
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 60px rgba(255, 200, 100, 0.8));
+}
+
+.balloon-emoji.popping {
+  animation: pop 0.35s ease-out forwards !important;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50%       { transform: translateY(-20px) rotate(3deg); }
+}
+
+@keyframes pop {
+  0%   { transform: scale(1);   opacity: 1; }
+  40%  { transform: scale(1.6); opacity: 0.8; }
+  100% { transform: scale(0.1); opacity: 0; }
+}
+
+@keyframes pop-out {
+  0%   { transform: scale(1.8); opacity: 1; }
+  100% { transform: scale(4);   opacity: 0; }
 }
 
 .overlay-msg {
@@ -138,79 +233,7 @@
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.balloon-layer {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  gap: 12px;
-}
-
-.balloon-anchor {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  z-index: 10;
-}
-
-.balloon-emoji {
-  font-size: clamp(80px, 20vw, 160px);
-  filter: drop-shadow(0 0 40px rgba(255, 255, 255, 0.4));
-  animation: bob 2.5s ease-in-out infinite;
-  display: block;
-  transition: filter 0.1s;
-}
-
-.balloon-emoji.scared {
-  animation: scareBob 0.12s ease-in-out infinite alternate !important;
-}
-
-@keyframes scareBob {
-  from { transform: rotate(-10deg) scale(0.93); }
-  to   { transform: rotate(10deg)  scale(1.07); }
-}
-
-.balloon-emoji.near {
-  animation: none;
-  transform: scale(1.1);
-  filter: drop-shadow(0 0 60px rgba(255, 200, 100, 0.8));
-}
-
-.balloon-emoji.popping {
-  animation: pop 0.35s ease-out forwards !important;
-}
-
-@keyframes bob {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-3deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(3deg);
-  }
-}
-
-@keyframes pop {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  40% {
-    transform: scale(1.6);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(0.1);
-    opacity: 0;
-  }
+  to { transform: rotate(360deg); }
 }
 
 .touch-hint {
@@ -224,96 +247,69 @@
   backdrop-filter: blur(6px);
 }
 
-/* ── Reveal ── */
-.reveal {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+/* ── Gauge ── */
+.gauge-ui {
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 30;
 }
 
-.confetti-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
+.gauge-track {
+  width: 200px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid white;
+  margin-bottom: 8px;
+}
+
+.gauge-fill {
   height: 100%;
+  background: linear-gradient(90deg, #ff4d8d, #ff85b2);
+  transition: width 0.1s ease-out;
+}
+
+.gauge-text {
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: bold;
+  margin: 0;
+}
+
+/* ── REC badge ── */
+.rec-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #ff4d4d;
+  font-family: monospace;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 6px;
   pointer-events: none;
 }
 
-.reveal-content {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  text-align: center;
-  padding: 40px 24px;
-  animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+.rec-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  animation: blink 1s ease-in-out infinite;
 }
 
-@keyframes popIn {
-  from {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.reveal-icon {
-  font-size: clamp(80px, 18vw, 140px);
-  animation: bounce 0.9s ease-in-out infinite alternate;
-}
-
-@keyframes bounce {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-16px);
-  }
-}
-
-.reveal-label {
-  font-size: clamp(52px, 14vw, 120px);
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  letter-spacing: 2px;
-}
-
-.reveal-sub {
-  font-size: clamp(18px, 5vw, 28px);
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.restart-btn {
-  margin-top: 12px;
-  padding: 14px 36px;
-  font-family: "Nunito", sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-radius: 50px;
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  cursor: pointer;
-  backdrop-filter: blur(8px);
-  transition:
-    background 0.2s,
-    transform 0.15s;
-}
-
-.restart-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
 }
 
 /* ── Countdown ── */
@@ -345,63 +341,122 @@
   100% { transform: scale(0.6);  opacity: 0; }
 }
 
-/* ── REC badge ── */
-.rec-badge {
+/* ── Debug ── */
+.debug-panel {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  color: lime;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 12px;
   z-index: 20;
+}
+
+/* ── Reveal ── */
+.reveal {
+  position: relative;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.65);
-  color: #ff4d4d;
-  font-family: monospace;
-  font-size: 13px;
-  font-weight: bold;
-  padding: 4px 10px;
-  border-radius: 6px;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.confetti-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
-.rec-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ff4d4d;
-  animation: blink 1s ease-in-out infinite;
+.reveal-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 40px 24px;
+  animation: popIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-@keyframes blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.2;
-  }
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-/* ── Reaction video button ── */
-.reaction-btn {
-  padding: 14px 36px;
-  font-family: "Nunito", sans-serif;
-  font-size: 18px;
-  font-weight: 800;
-  border: none;
-  border-radius: 50px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #1a1a2e;
+.reveal-its-a {
+  font-family: 'Dancing Script', cursive;
+  font-size: clamp(26px, 6vw, 42px);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1;
+  margin-bottom: -4px;
+}
+
+.reveal-label {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(68px, 18vw, 130px);
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.03em;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  line-height: 1;
+  margin: 0;
+}
+
+.reveal-heart {
+  font-size: clamp(22px, 5vw, 32px);
+  color: rgba(255, 255, 255, 0.75);
+  margin-top: 2px;
+}
+
+.restart-btn {
+  margin-top: 16px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(14px, 3.5vw, 17px);
+  font-style: italic;
+  letter-spacing: 0.18em;
+  padding: 12px 36px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 40px;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
-  transition:
-    transform 0.15s,
-    box-shadow 0.15s;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  transition: background 0.2s, transform 0.15s;
+}
+
+.restart-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+}
+
+/* ── Reaction video ── */
+.reaction-btn {
+  padding: 12px 32px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(14px, 3.5vw, 17px);
+  font-style: italic;
+  letter-spacing: 0.12em;
+  border: none;
+  border-radius: 40px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #6b5b4e;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
 }
 
 .reaction-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.2);
 }
 
 /* ── Video modal ── */
@@ -438,14 +493,14 @@
 }
 
 .download-btn {
-  padding: 12px 28px;
-  font-family: "Nunito", sans-serif;
+  padding: 11px 26px;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 16px;
-  font-weight: 800;
+  letter-spacing: 0.1em;
   border: none;
-  border-radius: 50px;
+  border-radius: 40px;
   background: #fff;
-  color: #1a1a2e;
+  color: #6b5b4e;
   cursor: pointer;
   transition: transform 0.15s;
 }
@@ -455,18 +510,16 @@
 }
 
 .close-btn {
-  padding: 12px 28px;
-  font-family: "Nunito", sans-serif;
+  padding: 11px 26px;
+  font-family: 'Cormorant Garamond', serif;
   font-size: 16px;
-  font-weight: 800;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50px;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 40px;
   background: transparent;
   color: #fff;
   cursor: pointer;
-  transition:
-    background 0.2s,
-    transform 0.15s;
+  transition: background 0.2s, transform 0.15s;
 }
 
 .close-btn:hover {
@@ -474,214 +527,14 @@
   transform: translateY(-2px);
 }
 
-.gauge-ui {
-  position: absolute;
-  bottom: 15%;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  z-index: 30;
+/* ── Camera balloon pop ── */
+.cam-pop-anim {
+  animation: pop 0.35s ease-out forwards;
 }
 
-.gauge-track {
-  width: 200px;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid white;
-  margin-bottom: 8px;
-}
-
-.gauge-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #ff4d8d, #ff85b2);
-  transition: width 0.1s ease-out;
-}
-
-.gauge-text {
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-  font-weight: bold;
-  margin: 0;
-}
-
-/* 흔들리는 효과 */
+/* ── Wobble ── */
 @keyframes wobble {
-  0% {
-    transform: rotate(-3deg) scale(1);
-  }
-  50% {
-    transform: rotate(3deg) scale(1.05);
-  }
-  100% {
-    transform: rotate(-3deg) scale(1);
-  }
-}
-
-.balloon-emoji.popping {
-  animation: pop-out 0.5s forwards;
-}
-
-@keyframes pop-out {
-  0% {
-    transform: scale(1.8);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
-
-/* 카메라 뷰 컨테이너 */
-.camera-view {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: black;
-}
-
-/* 비디오 피드 및 핸드 캔버스 - 화면 꽉 채우고 완전히 겹침 */
-.camera-feed,
-.hand-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* 화면 크기에 맞춰 자르기/늘리기 */
-  transform: scaleX(-1); /* 거울 모드 적용 */
-}
-
-/* 캔버스는 transform이 두 번 적용되지 않게 주의! */
-/* 만약 JS에서 ctx.scale(-1, 1)을 썼다면 CSS에서는 scaleX(-1)만 사용 */
-
-/* REC 배지 */
-.rec-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  z-index: 20;
-}
-.rec-dot {
-  width: 8px;
-  height: 8px;
-  background: red;
-  border-radius: 50%;
-  margin-right: 5px;
-  animation: pulse 1s infinite;
-}
-@keyframes pulse {
-  0% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* 디버그 패널 */
-.debug-panel {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background: rgba(0, 0, 0, 0.6);
-  color: lime;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-family: monospace;
-  font-size: 12px;
-  z-index: 20;
-}
-
-/* 풍선 레이어 및 에모지 */
-.balloon-layer {
-  position: absolute;
-  top: 42%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 30;
-}
-.balloon-emoji {
-  font-size: 80px;
-  transition: transform 0.1s ease-out;
-  cursor: none;
-}
-.balloon-emoji.popping {
-  animation: pop-out 0.5s forwards;
-}
-
-/* 게이지 UI 스타일 */
-.gauge-ui {
-  margin-top: 20px;
-  text-align: center;
-}
-.gauge-track {
-  width: 200px;
-  height: 12px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  overflow: hidden;
-  border: 2px solid white;
-}
-.gauge-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #ff4d8d, #ff85b2);
-  transition: width 0.1s ease-out;
-}
-.gauge-text {
-  color: white;
-  font-weight: bold;
-  margin-top: 8px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-/* 흔들리는 효과 애니메이션 */
-@keyframes wobble {
-  0% {
-    transform: rotate(-3deg) scale(1);
-  }
-  50% {
-    transform: rotate(3deg) scale(1.05);
-  }
-  100% {
-    transform: rotate(-3deg) scale(1);
-  }
-}
-
-/* 터지는 효과 애니메이션 */
-@keyframes pop-out {
-  0% {
-    transform: scale(1.8);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
-
-/* 로딩/에러 오버레이 */
-.overlay-msg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  text-align: center;
-  z-index: 40;
+  0%   { transform: rotate(-3deg) scale(1); }
+  50%  { transform: rotate(3deg) scale(1.05); }
+  100% { transform: rotate(-3deg) scale(1); }
 }
