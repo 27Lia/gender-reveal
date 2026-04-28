@@ -203,6 +203,17 @@ export default function App() {
     setPhase("intro");
   }, []);
 
+  const handleStart = useCallback(async () => {
+    try {
+      // iOS Safari requires getUserMedia to be called within a user gesture
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      stream.getTracks().forEach((t) => t.stop());
+    } catch (_) {
+      // permission denied or unavailable — proceed anyway, CameraView will show the error
+    }
+    setPhase("camera");
+  }, []);
+
   return (
     <div className="app">
       {phase === "intro" && (
@@ -219,7 +230,7 @@ export default function App() {
             </div>
             <p className="intro-names">Woorim &amp; Francisco</p>
           </div>
-          <button className="start-btn" onClick={() => setPhase("camera")}>
+          <button className="start-btn" onClick={handleStart}>
             Touch to Reveal
           </button>
         </div>
