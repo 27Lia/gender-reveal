@@ -311,7 +311,8 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         waited += 100;
         setTimeout(waitForMediaPipe, 100);
       } else {
-        if (debugRef.current) debugRef.current.textContent = "MediaPipe 로드 실패";
+        if (debugRef.current)
+          debugRef.current.textContent = "MediaPipe 로드 실패";
         setStatus("error");
       }
     }
@@ -375,7 +376,8 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         ctx.setLineDash([]);
 
         const landmarks = results.multiHandLandmarks ?? [];
-        if (debugRef.current) debugRef.current.textContent = `손 감지: ${landmarks.length}`;
+        if (debugRef.current)
+          debugRef.current.textContent = `손 감지: ${landmarks.length}`;
 
         let isInside = false;
 
@@ -500,10 +502,13 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
             next = Math.max(0, gaugeRef.current - DECAY_SPEED);
           }
           gaugeRef.current = next;
-          if (gaugeFillRef.current) gaugeFillRef.current.style.width = `${next}%`;
+          if (gaugeFillRef.current)
+            gaugeFillRef.current.style.width = `${next}%`;
           if (gaugeTextRef.current) {
             gaugeTextRef.current.textContent =
-              next > 0 ? "더 꾹 누르세요! ✊" : "✋ 풍선을 손으로 누르세요!";
+              next > 0
+                ? "더 꾹 누르세요! ✊"
+                : "✋ 손을 인식시켜서 풍선에 손을 갖다대세요!";
           }
           if (balloonSvgRef.current) {
             const scale = 1 + (next / 100) * 0.3;
@@ -542,7 +547,8 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
           startRecording(micStream);
         })
         .catch((err) => {
-          if (debugRef.current) debugRef.current.textContent = `에러: ${err.message}`;
+          if (debugRef.current)
+            debugRef.current.textContent = `에러: ${err.message}`;
           setStatus("error");
         });
     }
@@ -575,7 +581,9 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         </div>
       )}
 
-      <div className="debug-panel" ref={debugRef}>로딩중...</div>
+      <div className="debug-panel" ref={debugRef}>
+        로딩중...
+      </div>
 
       {status === "loading" && (
         <div className="overlay-msg">
@@ -601,9 +609,15 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
           {!popping && (
             <div className="gauge-ui">
               <div className="gauge-track">
-                <div className="gauge-fill" ref={gaugeFillRef} style={{ width: "0%" }} />
+                <div
+                  className="gauge-fill"
+                  ref={gaugeFillRef}
+                  style={{ width: "0%" }}
+                />
               </div>
-              <p className="gauge-text" ref={gaugeTextRef}>✋ 풍선을 손으로 누르세요!</p>
+              <p className="gauge-text" ref={gaugeTextRef}>
+                ✋ 풍선을 손으로 누르세요!
+              </p>
             </div>
           )}
         </>
