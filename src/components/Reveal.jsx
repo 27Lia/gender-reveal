@@ -84,11 +84,28 @@ export default function Reveal({ gender, onRestart, recordingBlob }) {
     };
   }, [cfg.colors]);
 
-  const handleDownload = () => {
-    if (!videoUrl) return;
+  const handleDownload = async () => {
+    if (!recordingBlob) return;
+    const ext = recordingBlob.type.includes("mp4") ? "mp4" : "webm";
+    const filename = `gender-reveal-reaction.${ext}`;
+
+    // Web Share API — works on iOS Safari and Android Chrome
+    if (navigator.share && navigator.canShare) {
+      const file = new File([recordingBlob], filename, { type: recordingBlob.type });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file] });
+          return;
+        } catch (e) {
+          if (e.name === "AbortError") return; // user cancelled share sheet
+        }
+      }
+    }
+
+    // Desktop fallback
     const a = document.createElement("a");
     a.href = videoUrl;
-    a.download = "gender-reveal-reaction.webm";
+    a.download = filename;
     a.click();
   };
 
@@ -115,7 +132,7 @@ export default function Reveal({ gender, onRestart, recordingBlob }) {
             <video src={videoUrl} controls autoPlay className="reaction-video" />
             <div className="video-modal-actions">
               <button className="download-btn" onClick={handleDownload}>
-                Download
+                Save Video
               </button>
               <button className="close-btn" onClick={() => setShowVideo(false)}>
                 Close

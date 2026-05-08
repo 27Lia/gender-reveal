@@ -134,6 +134,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
   const recCanvasRef = useRef(document.createElement("canvas"));
   const cameraRef = useRef(null);
   const recorderRef = useRef(null);
+  const micStreamRef = useRef(null);
   const poppedRef = useRef(false);
   const genderRef = useRef(gender);
   const gaugeRef = useRef(0);
@@ -151,17 +152,23 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
     genderRef.current = gender;
   }, [gender]);
 
-  const startRecording = useCallback(() => {
+  const startRecording = useCallback((micStream) => {
     const recCanvas = recCanvasRef.current;
     if (!recCanvas || !window.MediaRecorder) return;
 
     const stream = recCanvas.captureStream(30);
+    if (micStream) {
+      micStream.getAudioTracks().forEach((t) => stream.addTrack(t));
+      micStreamRef.current = micStream;
+    }
+
     const mimeType =
       [
+        "video/mp4;codecs=avc1,mp4a.40.2",
+        "video/mp4",
         "video/webm;codecs=vp9,opus",
         "video/webm;codecs=vp8,opus",
         "video/webm",
-        "video/mp4",
       ].find((m) => MediaRecorder.isTypeSupported(m)) || "";
     try {
       const recorder = new MediaRecorder(
@@ -174,9 +181,13 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
       };
       recorder.onstop = () => {
         const blob = new Blob(chunks, {
-          type: recorder.mimeType || "video/webm",
+          type: recorder.mimeType || "video/mp4",
         });
         onRecordingReady?.(blob);
+        setRecording(false);
+        cameraRef.current?.stop();
+        micStreamRef.current?.getTracks().forEach((t) => t.stop());
+        micStreamRef.current = null;
       };
       recorder.start(100);
       recorderRef.current = recorder;
@@ -210,11 +221,11 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
       }, 1000);
     }, 600);
 
+    // Keep recording on Reveal screen for ~4s more (8s total from pop)
     setTimeout(() => {
       if (recorderRef.current?.state === "recording")
-        recorderRef.current.stop();
-      cameraRef.current?.stop();
-    }, 4500);
+        recorderRef.current.stop(); // camera stops in onstop
+    }, 8000);
   }, [onPop]);
 
   useEffect(() => {
@@ -418,12 +429,18 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
       cameraRef.current = camera;
       camera
         .start()
-        .then(() => {
+        .then(async () => {
           setStatus("ready");
           setDebugInfo("손 감지: 0");
           recCanvas.width = video.videoWidth || 1280;
           recCanvas.height = video.videoHeight || 720;
-          startRecording();
+          let micStream = null;
+          try {
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+          } catch {
+            // mic denied or unavailable — record without audio
+          }
+          startRecording(micStream);
         })
         .catch((err) => {
           setDebugInfo(`에러: ${err.message}`);
@@ -432,11 +449,10 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
     }
 
     return () => {
-      if (!poppedRef.current) {
-        cameraRef.current?.stop();
-        if (recorderRef.current?.state === "recording")
-          recorderRef.current.stop();
-      }
+      cameraRef.current?.stop();
+      if (recorderRef.current?.state === "recording")
+        recorderRef.current.stop();
+      micStreamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, [handlePop, startRecording]);
 

@@ -3,8 +3,7 @@ import CameraView from "./components/CameraView";
 import Reveal from "./components/Reveal";
 import "./App.css";
 
-const GENDER = Math.random() < 0.5 ? "boy" : "girl";
-// const GENDER = "girl" "boy";
+const GENDER = "girl";
 
 function BlueBalloon() {
   return (
@@ -236,12 +235,20 @@ export default function App() {
         </div>
       )}
 
-      {phase === "camera" && (
-        <CameraView
-          gender={GENDER}
-          onPop={handlePop}
-          onRecordingReady={handleRecordingReady}
-        />
+      {(phase === "camera" || phase === "revealed") && (
+        <div style={phase === "revealed" ? {
+          position: "absolute",
+          inset: 0,
+          opacity: 0,
+          pointerEvents: "none",
+          zIndex: -1,
+        } : undefined}>
+          <CameraView
+            gender={GENDER}
+            onPop={handlePop}
+            onRecordingReady={handleRecordingReady}
+          />
+        </div>
       )}
 
       {phase === "revealed" && (

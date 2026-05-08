@@ -532,6 +532,64 @@
   animation: pop 0.35s ease-out forwards;
 }
 
+/* ── Camera color wash (post-pop) ── */
+.camera-color-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  animation: washIn 1s ease forwards;
+}
+
+@keyframes washIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Camera reveal text (post-countdown) ── */
+.camera-reveal-text {
+  position: absolute;
+  bottom: 18%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 35;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  animation: revealFadeIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.camera-reveal-text .its-a {
+  font-family: 'Dancing Script', cursive;
+  font-size: clamp(22px, 5vw, 32px);
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.camera-reveal-text .gender-name {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(64px, 16vw, 110px);
+  font-weight: 600;
+  color: #fff;
+  line-height: 1;
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.camera-reveal-text .heart {
+  font-size: clamp(20px, 5vw, 30px);
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 4px;
+}
+
+@keyframes revealFadeIn {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
 /* ── Wobble ── */
 @keyframes wobble {
   0%   { transform: rotate(-3deg) scale(1); }
