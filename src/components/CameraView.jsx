@@ -200,6 +200,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
   const genderRef = useRef(gender);
   const gaugeRef = useRef(0);
   const countdownRef = useRef(null);
+  const countdownDoneRef = useRef(false);
   const popTimeRef = useRef(null);
 
   const gaugeFillRef = useRef(null);
@@ -281,6 +282,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
           setCountdown(1);
           setTimeout(() => {
             countdownRef.current = null;
+            countdownDoneRef.current = true;
             setCountdown(null);
             onPop();
           }, 1000);
@@ -469,7 +471,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
             const fontSize = Math.round(rH * 0.28);
             rCtx.font = `900 ${fontSize}px sans-serif`;
             rCtx.fillText(`${cd}!`, rW / 2, rH / 2);
-          } else if (elapsed >= 600) {
+          } else if (countdownDoneRef.current) {
             // after countdown ends — reveal text, scale to fit width
             const text = isGirl ? "It's a Girl! ♡" : "It's a Boy! ♡";
             let fontSize = Math.round(rH * 0.1);
