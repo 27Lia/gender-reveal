@@ -347,13 +347,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
         }
-        if (
-          recCanvas.width !== video.videoWidth ||
-          recCanvas.height !== video.videoHeight
-        ) {
-          recCanvas.width = video.videoWidth;
-          recCanvas.height = video.videoHeight;
-        }
+        // recording canvas size is set once in camera.start — don't override
 
         const cW = canvas.width;
         const cH = canvas.height;
@@ -411,11 +405,23 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         const rW = recCanvas.width;
         const rH = recCanvas.height;
 
-        // mirrored camera frame
+        // mirrored camera frame — cover crop to match canvas aspect ratio
+        const vW = video.videoWidth;
+        const vH = video.videoHeight;
+        const canvasAspect = rW / rH;
+        const videoAspect = vW / vH;
+        let sx = 0, sy = 0, sw = vW, sh = vH;
+        if (videoAspect > canvasAspect) {
+          sw = vH * canvasAspect;
+          sx = (vW - sw) / 2;
+        } else {
+          sh = vW / canvasAspect;
+          sy = (vH - sh) / 2;
+        }
         rCtx.save();
         rCtx.translate(rW, 0);
         rCtx.scale(-1, 1);
-        rCtx.drawImage(video, 0, 0, rW, rH);
+        rCtx.drawImage(video, sx, sy, sw, sh, 0, 0, rW, rH);
         rCtx.restore();
 
         if (!poppedRef.current) {
@@ -533,8 +539,18 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         .then(async () => {
           setStatus("ready");
           if (debugRef.current) debugRef.current.textContent = "손 감지: 0";
-          recCanvas.width = video.videoWidth || 1280;
-          recCanvas.height = video.videoHeight || 720;
+          // Set recording canvas to match screen aspect ratio
+          const screenAspect = window.innerWidth / window.innerHeight;
+          const videoLong = Math.max(video.videoWidth || 1280, video.videoHeight || 720);
+          if (screenAspect < 1) {
+            // portrait
+            recCanvas.height = videoLong;
+            recCanvas.width = Math.round(videoLong * screenAspect);
+          } else {
+            // landscape
+            recCanvas.width = videoLong;
+            recCanvas.height = Math.round(videoLong / screenAspect);
+          }
           let micStream = null;
           try {
             micStream = await navigator.mediaDevices.getUserMedia({
