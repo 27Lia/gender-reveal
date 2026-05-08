@@ -441,16 +441,20 @@
 /* ── Reaction video ── */
 .generating-text {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(13px, 3vw, 15px);
+  font-size: clamp(14px, 3.5vw, 17px);
   font-style: italic;
-  color: rgba(255, 255, 255, 0.65);
+  color: #fff;
   margin: 0;
-  letter-spacing: 0.08em;
-  animation: pulse 1.4s ease-in-out infinite;
+  letter-spacing: 0.1em;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 10px 24px;
+  border-radius: 30px;
+  backdrop-filter: blur(6px);
+  animation: pulse 1.2s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.5; }
+  0%, 100% { opacity: 0.55; }
   50%       { opacity: 1; }
 }
 

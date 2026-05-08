@@ -290,11 +290,11 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
       }, 1000);
     }, 600);
 
-    // Keep recording on Reveal screen for ~4s more (8s total from pop)
+    // Keep recording for 10s after result appears (3.6s countdown + 10s = ~14s total)
     setTimeout(() => {
       if (recorderRef.current?.state === "recording")
         recorderRef.current.stop(); // camera stops in onstop
-    }, 8000);
+    }, 14000);
   }, [onPop]);
 
   useEffect(() => {
