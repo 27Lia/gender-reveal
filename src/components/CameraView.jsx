@@ -388,14 +388,16 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
             rCtx.font = `900 ${fontSize}px sans-serif`;
             rCtx.fillText(`${cd}!`, rW / 2, rH / 2);
           } else if (elapsed >= 600) {
-            // after countdown ends — reveal text
-            const fontSize = Math.round(rH * 0.1);
+            // after countdown ends — reveal text, scale to fit width
+            const text = isGirl ? "It's a Girl! ♡" : "It's a Boy! ♡";
+            let fontSize = Math.round(rH * 0.1);
             rCtx.font = `600 ${fontSize}px Georgia, serif`;
-            rCtx.fillText(
-              isGirl ? "It's a Girl! ♡" : "It's a Boy! ♡",
-              rW / 2,
-              rH * 0.52,
-            );
+            const maxW = rW * 0.88;
+            if (rCtx.measureText(text).width > maxW) {
+              fontSize = Math.round(fontSize * maxW / rCtx.measureText(text).width);
+              rCtx.font = `600 ${fontSize}px Georgia, serif`;
+            }
+            rCtx.fillText(text, rW / 2, rH * 0.52);
           }
           rCtx.restore();
         }

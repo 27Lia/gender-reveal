@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useMemo } from "react";
 
 const CONFIG = {
   boy: {
@@ -16,7 +16,6 @@ const CONFIG = {
 export default function Reveal({ gender, onRestart, recordingBlob }) {
   const canvasRef = useRef(null);
   const cfg = CONFIG[gender] ?? CONFIG.girl;
-  const [showVideo, setShowVideo] = useState(false);
 
   const videoUrl = useMemo(() => {
     if (!recordingBlob) return null;
@@ -116,31 +115,17 @@ export default function Reveal({ gender, onRestart, recordingBlob }) {
         <div className="reveal-its-a">It&apos;s a</div>
         <h1 className="reveal-label">{cfg.genderText}</h1>
         <p className="reveal-heart">♡</p>
-        {recordingBlob && (
-          <button className="reaction-btn" onClick={() => setShowVideo(true)}>
-            Watch Reaction
+        {recordingBlob ? (
+          <button className="reaction-btn" onClick={handleDownload}>
+            Save Video
           </button>
+        ) : (
+          <p className="generating-text">동영상 생성중...</p>
         )}
         <button className="restart-btn" onClick={onRestart}>
           Play Again
         </button>
       </div>
-
-      {showVideo && videoUrl && (
-        <div className="video-modal" onClick={() => setShowVideo(false)}>
-          <div className="video-modal-inner" onClick={(e) => e.stopPropagation()}>
-            <video src={videoUrl} controls autoPlay className="reaction-video" />
-            <div className="video-modal-actions">
-              <button className="download-btn" onClick={handleDownload}>
-                Save Video
-              </button>
-              <button className="close-btn" onClick={() => setShowVideo(false)}>
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
