@@ -507,8 +507,8 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
           if (gaugeTextRef.current) {
             gaugeTextRef.current.textContent =
               next > 0
-                ? "손이 풍선에서 멀어졌어요! ✊"
-                : "✋ 먼저 손을 인식시켜서 풍선에 손을 갖다대세요!";
+                ? "풍선에서 손을 떼지 마세요! ✊"
+                : "✋ 손을 인식시켜서 풍선에 손을 갖다대세요!";
           }
           if (balloonSvgRef.current) {
             const scale = 1 + (next / 100) * 0.3;
@@ -616,7 +616,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
                 />
               </div>
               <p className="gauge-text" ref={gaugeTextRef}>
-                ✋ 풍선을 손으로 누르세요!
+                ✋ 손을 인식시켜서 풍선에 손을 갖다대세요!
               </p>
             </div>
           )}
