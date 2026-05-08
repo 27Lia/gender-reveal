@@ -377,7 +377,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
 
         const landmarks = results.multiHandLandmarks ?? [];
         if (debugRef.current)
-          debugRef.current.textContent = `손 감지: ${landmarks.length}`;
+          debugRef.current.textContent = `손 감지: ${landmarks.length}, `;
 
         let isInside = false;
 
@@ -569,7 +569,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
       {recording && (
         <div className="rec-badge">
           <span className="rec-dot" />
-          REC
+          REC (동영상 녹화중입니다.)
         </div>
       )}
 
