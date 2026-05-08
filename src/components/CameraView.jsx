@@ -91,16 +91,15 @@ function drawBalloonOnCanvas(ctx, cx, cy, radius, scale, glow) {
   ctx.restore();
 }
 
-function PlaidBalloon({ gauge }) {
-  const scale = 1 + (gauge / 100) * 0.3;
-  const glow = gauge / 4;
+function PlaidBalloon({ svgRef }) {
   return (
     <svg
+      ref={svgRef}
       style={{
         width: "min(28vw, 180px)",
         height: "min(38vw, 240px)",
-        transform: `scale(${scale})`,
-        filter: `drop-shadow(0 0 ${glow}px rgba(255,255,255,0.85))`,
+        transform: "scale(1)",
+        filter: "drop-shadow(0 0 0px rgba(255,255,255,0.85))",
         transition: "transform 0.12s ease-out",
         display: "block",
       }}
@@ -203,11 +202,14 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
   const countdownRef = useRef(null);
   const popTimeRef = useRef(null);
 
+  const gaugeFillRef = useRef(null);
+  const gaugeTextRef = useRef(null);
+  const debugRef = useRef(null);
+  const balloonSvgRef = useRef(null);
+
   const [status, setStatus] = useState("loading");
-  const [debugInfo, setDebugInfo] = useState("로딩중...");
   const [popping, setPopping] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [gauge, setGauge] = useState(0);
   const [countdown, setCountdown] = useState(null);
 
   useEffect(() => {
@@ -307,14 +309,14 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         waited += 100;
         setTimeout(waitForMediaPipe, 100);
       } else {
-        setDebugInfo("MediaPipe 로드 실패");
+        if (debugRef.current) debugRef.current.textContent = "MediaPipe 로드 실패";
         setStatus("error");
       }
     }
     waitForMediaPipe();
 
     function init() {
-      setDebugInfo("모델 초기화...");
+      if (debugRef.current) debugRef.current.textContent = "모델 초기화...";
 
       const hands = new window.Hands({
         locateFile: (file) =>
@@ -371,7 +373,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         ctx.setLineDash([]);
 
         const landmarks = results.multiHandLandmarks ?? [];
-        setDebugInfo(`손 감지: ${landmarks.length}`);
+        if (debugRef.current) debugRef.current.textContent = `손 감지: ${landmarks.length}`;
 
         let isInside = false;
 
@@ -485,20 +487,28 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         }
 
         if (!poppedRef.current) {
-          setGauge((prev) => {
-            let next;
-            if (isInside) {
-              next = prev + GAUGE_SPEED;
-              if (next >= 100) {
-                handlePop();
-                next = 100;
-              }
-            } else {
-              next = Math.max(0, prev - DECAY_SPEED);
+          let next;
+          if (isInside) {
+            next = gaugeRef.current + GAUGE_SPEED;
+            if (next >= 100) {
+              handlePop();
+              next = 100;
             }
-            gaugeRef.current = next;
-            return next;
-          });
+          } else {
+            next = Math.max(0, gaugeRef.current - DECAY_SPEED);
+          }
+          gaugeRef.current = next;
+          if (gaugeFillRef.current) gaugeFillRef.current.style.width = `${next}%`;
+          if (gaugeTextRef.current) {
+            gaugeTextRef.current.textContent =
+              next > 0 ? "더 꾹 누르세요! ✊" : "✋ 풍선을 손으로 누르세요!";
+          }
+          if (balloonSvgRef.current) {
+            const scale = 1 + (next / 100) * 0.3;
+            const glow = next / 4;
+            balloonSvgRef.current.style.transform = `scale(${scale})`;
+            balloonSvgRef.current.style.filter = `drop-shadow(0 0 ${glow}px rgba(255,255,255,0.85))`;
+          }
         }
       });
 
@@ -515,7 +525,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         .start()
         .then(async () => {
           setStatus("ready");
-          setDebugInfo("손 감지: 0");
+          if (debugRef.current) debugRef.current.textContent = "손 감지: 0";
           recCanvas.width = video.videoWidth || 1280;
           recCanvas.height = video.videoHeight || 720;
           let micStream = null;
@@ -530,7 +540,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
           startRecording(micStream);
         })
         .catch((err) => {
-          setDebugInfo(`에러: ${err.message}`);
+          if (debugRef.current) debugRef.current.textContent = `에러: ${err.message}`;
           setStatus("error");
         });
     }
@@ -563,7 +573,7 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         </div>
       )}
 
-      <div className="debug-panel">{debugInfo}</div>
+      <div className="debug-panel" ref={debugRef}>로딩중...</div>
 
       {status === "loading" && (
         <div className="overlay-msg">
@@ -582,20 +592,16 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
             }}
           >
             <div className={popping ? "cam-pop-anim" : ""}>
-              <PlaidBalloon gauge={popping ? 100 : gauge} />
+              <PlaidBalloon svgRef={balloonSvgRef} />
             </div>
           </div>
 
           {!popping && (
             <div className="gauge-ui">
               <div className="gauge-track">
-                <div className="gauge-fill" style={{ width: `${gauge}%` }} />
+                <div className="gauge-fill" ref={gaugeFillRef} style={{ width: "0%" }} />
               </div>
-              <p className="gauge-text">
-                {gauge > 0
-                  ? "더 꾹 누르세요! ✊"
-                  : "✋ 풍선을 손으로 누르세요!"}
-              </p>
+              <p className="gauge-text" ref={gaugeTextRef}>✋ 풍선을 손으로 누르세요!</p>
             </div>
           )}
         </>
