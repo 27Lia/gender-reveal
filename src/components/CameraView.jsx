@@ -2,8 +2,8 @@ import { useRef, useEffect, useState, useCallback } from "react";
 
 const BALLOON_RADIUS = 0.13;
 const TIPS = [4, 8, 12, 16, 20];
-const GAUGE_SPEED = 2.5;
-const DECAY_SPEED = 1.0;
+const GAUGE_SPEED = 1.0;
+const DECAY_SPEED = 0.6;
 const BALLOON_X = 0.5;
 const BALLOON_Y = 0.42;
 
@@ -48,7 +48,14 @@ function drawBalloonOnCanvas(ctx, cx, cy, radius, scale, glow) {
   ctx.restore();
 
   // shine
-  const shine = ctx.createRadialGradient(-rx * 0.2, -ry * 0.28, 0, 0, 0, rx * 1.1);
+  const shine = ctx.createRadialGradient(
+    -rx * 0.2,
+    -ry * 0.28,
+    0,
+    0,
+    0,
+    rx * 1.1,
+  );
   shine.addColorStop(0, "rgba(255,255,255,0.55)");
   shine.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = shine;
@@ -101,29 +108,84 @@ function PlaidBalloon({ gauge }) {
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <pattern id="grid-cam" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
-          <rect width="18" height="18" fill="#ede4d8"/>
-          <line x1="0" y1="0" x2="18" y2="0" stroke="#c8baa8" strokeWidth="1.3"/>
-          <line x1="0" y1="9" x2="18" y2="9" stroke="#d8ccc0" strokeWidth="0.7"/>
-          <line x1="0" y1="18" x2="18" y2="18" stroke="#c8baa8" strokeWidth="1.3"/>
-          <line x1="0" y1="0" x2="0" y2="18" stroke="#c8baa8" strokeWidth="1.3"/>
-          <line x1="9" y1="0" x2="9" y2="18" stroke="#d8ccc0" strokeWidth="0.7"/>
-          <line x1="18" y1="0" x2="18" y2="18" stroke="#c8baa8" strokeWidth="1.3"/>
+        <pattern
+          id="grid-cam"
+          x="0"
+          y="0"
+          width="18"
+          height="18"
+          patternUnits="userSpaceOnUse"
+        >
+          <rect width="18" height="18" fill="#ede4d8" />
+          <line
+            x1="0"
+            y1="0"
+            x2="18"
+            y2="0"
+            stroke="#c8baa8"
+            strokeWidth="1.3"
+          />
+          <line
+            x1="0"
+            y1="9"
+            x2="18"
+            y2="9"
+            stroke="#d8ccc0"
+            strokeWidth="0.7"
+          />
+          <line
+            x1="0"
+            y1="18"
+            x2="18"
+            y2="18"
+            stroke="#c8baa8"
+            strokeWidth="1.3"
+          />
+          <line
+            x1="0"
+            y1="0"
+            x2="0"
+            y2="18"
+            stroke="#c8baa8"
+            strokeWidth="1.3"
+          />
+          <line
+            x1="9"
+            y1="0"
+            x2="9"
+            y2="18"
+            stroke="#d8ccc0"
+            strokeWidth="0.7"
+          />
+          <line
+            x1="18"
+            y1="0"
+            x2="18"
+            y2="18"
+            stroke="#c8baa8"
+            strokeWidth="1.3"
+          />
         </pattern>
         <radialGradient id="shine-cam" cx="35%" cy="28%" r="55%">
-          <stop offset="0%" stopColor="rgba(255,255,255,0.6)"/>
-          <stop offset="100%" stopColor="rgba(255,255,255,0)"/>
+          <stop offset="0%" stopColor="rgba(255,255,255,0.6)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
         </radialGradient>
         <radialGradient id="edge-cam" cx="50%" cy="50%" r="50%">
-          <stop offset="70%" stopColor="rgba(255,255,255,0)"/>
-          <stop offset="100%" stopColor="rgba(140,110,80,0.25)"/>
+          <stop offset="70%" stopColor="rgba(255,255,255,0)" />
+          <stop offset="100%" stopColor="rgba(140,110,80,0.25)" />
         </radialGradient>
       </defs>
-      <ellipse cx="65" cy="65" rx="56" ry="60" fill="url(#grid-cam)"/>
-      <ellipse cx="65" cy="65" rx="56" ry="60" fill="url(#shine-cam)"/>
-      <ellipse cx="65" cy="65" rx="56" ry="60" fill="url(#edge-cam)"/>
-      <ellipse cx="65" cy="127" rx="5" ry="4" fill="#c8baa8"/>
-      <path d="M65 131 Q58 150 65 165 Q72 178 65 190" stroke="#c8baa8" strokeWidth="1.3" fill="none" strokeLinecap="round"/>
+      <ellipse cx="65" cy="65" rx="56" ry="60" fill="url(#grid-cam)" />
+      <ellipse cx="65" cy="65" rx="56" ry="60" fill="url(#shine-cam)" />
+      <ellipse cx="65" cy="65" rx="56" ry="60" fill="url(#edge-cam)" />
+      <ellipse cx="65" cy="127" rx="5" ry="4" fill="#c8baa8" />
+      <path
+        d="M65 131 Q58 150 65 165 Q72 178 65 190"
+        stroke="#c8baa8"
+        strokeWidth="1.3"
+        fill="none"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -152,50 +214,53 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
     genderRef.current = gender;
   }, [gender]);
 
-  const startRecording = useCallback((micStream) => {
-    const recCanvas = recCanvasRef.current;
-    if (!recCanvas || !window.MediaRecorder) return;
+  const startRecording = useCallback(
+    (micStream) => {
+      const recCanvas = recCanvasRef.current;
+      if (!recCanvas || !window.MediaRecorder) return;
 
-    const stream = recCanvas.captureStream(30);
-    if (micStream) {
-      micStream.getAudioTracks().forEach((t) => stream.addTrack(t));
-      micStreamRef.current = micStream;
-    }
+      const stream = recCanvas.captureStream(30);
+      if (micStream) {
+        micStream.getAudioTracks().forEach((t) => stream.addTrack(t));
+        micStreamRef.current = micStream;
+      }
 
-    const mimeType =
-      [
-        "video/mp4;codecs=avc1,mp4a.40.2",
-        "video/mp4",
-        "video/webm;codecs=vp9,opus",
-        "video/webm;codecs=vp8,opus",
-        "video/webm",
-      ].find((m) => MediaRecorder.isTypeSupported(m)) || "";
-    try {
-      const recorder = new MediaRecorder(
-        stream,
-        mimeType ? { mimeType } : {},
-      );
-      const chunks = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
-      };
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, {
-          type: recorder.mimeType || "video/mp4",
-        });
-        onRecordingReady?.(blob);
-        setRecording(false);
-        cameraRef.current?.stop();
-        micStreamRef.current?.getTracks().forEach((t) => t.stop());
-        micStreamRef.current = null;
-      };
-      recorder.start(100);
-      recorderRef.current = recorder;
-      setRecording(true);
-    } catch (e) {
-      console.warn("Recording failed:", e);
-    }
-  }, [onRecordingReady]);
+      const mimeType =
+        [
+          "video/mp4;codecs=avc1,mp4a.40.2",
+          "video/mp4",
+          "video/webm;codecs=vp9,opus",
+          "video/webm;codecs=vp8,opus",
+          "video/webm",
+        ].find((m) => MediaRecorder.isTypeSupported(m)) || "";
+      try {
+        const recorder = new MediaRecorder(
+          stream,
+          mimeType ? { mimeType } : {},
+        );
+        const chunks = [];
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) chunks.push(e.data);
+        };
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, {
+            type: recorder.mimeType || "video/mp4",
+          });
+          onRecordingReady?.(blob);
+          setRecording(false);
+          cameraRef.current?.stop();
+          micStreamRef.current?.getTracks().forEach((t) => t.stop());
+          micStreamRef.current = null;
+        };
+        recorder.start(100);
+        recorderRef.current = recorder;
+        setRecording(true);
+      } catch (e) {
+        console.warn("Recording failed:", e);
+      }
+    },
+    [onRecordingReady],
+  );
 
   const handlePop = useCallback(() => {
     if (poppedRef.current) return;
@@ -270,11 +335,17 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
 
         const ctx = canvas.getContext("2d");
 
-        if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        if (
+          canvas.width !== video.videoWidth ||
+          canvas.height !== video.videoHeight
+        ) {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
         }
-        if (recCanvas.width !== video.videoWidth || recCanvas.height !== video.videoHeight) {
+        if (
+          recCanvas.width !== video.videoWidth ||
+          recCanvas.height !== video.videoHeight
+        ) {
           recCanvas.width = video.videoWidth;
           recCanvas.height = video.videoHeight;
         }
@@ -286,7 +357,13 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
         ctx.clearRect(0, 0, cW, cH);
 
         ctx.beginPath();
-        ctx.arc((1 - BALLOON_X) * cW, BALLOON_Y * cH, BALLOON_RADIUS * cW, 0, Math.PI * 2);
+        ctx.arc(
+          (1 - BALLOON_X) * cW,
+          BALLOON_Y * cH,
+          BALLOON_RADIUS * cW,
+          0,
+          Math.PI * 2,
+        );
         ctx.strokeStyle = "rgba(255,255,255,0.18)";
         ctx.setLineDash([6, 5]);
         ctx.lineWidth = 2;
@@ -353,7 +430,10 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
           // balloon pop animation (0–350ms)
           if (elapsed < 350) {
             const t = elapsed / 350;
-            const scale = t < 0.4 ? 1 + t * 3.75 : Math.max(0, 2.5 - ((t - 0.4) / 0.6) * 2.5);
+            const scale =
+              t < 0.4
+                ? 1 + t * 3.75
+                : Math.max(0, 2.5 - ((t - 0.4) / 0.6) * 2.5);
             const alpha = t < 0.4 ? 1 : Math.max(0, 1 - (t - 0.4) / 0.6);
             rCtx.globalAlpha = alpha;
             drawBalloonOnCanvas(
@@ -394,7 +474,9 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
             rCtx.font = `600 ${fontSize}px Georgia, serif`;
             const maxW = rW * 0.88;
             if (rCtx.measureText(text).width > maxW) {
-              fontSize = Math.round(fontSize * maxW / rCtx.measureText(text).width);
+              fontSize = Math.round(
+                (fontSize * maxW) / rCtx.measureText(text).width,
+              );
               rCtx.font = `600 ${fontSize}px Georgia, serif`;
             }
             rCtx.fillText(text, rW / 2, rH * 0.52);
@@ -438,7 +520,10 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
           recCanvas.height = video.videoHeight || 720;
           let micStream = null;
           try {
-            micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            micStream = await navigator.mediaDevices.getUserMedia({
+              audio: true,
+              video: false,
+            });
           } catch {
             // mic denied or unavailable — record without audio
           }
