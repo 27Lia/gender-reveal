@@ -507,8 +507,8 @@ export default function CameraView({ gender, onPop, onRecordingReady }) {
           if (gaugeTextRef.current) {
             gaugeTextRef.current.textContent =
               next > 0
-                ? "더 꾹 누르세요! ✊"
-                : "✋ 손을 인식시켜서 풍선에 손을 갖다대세요!";
+                ? "손이 풍선에서 멀어졌어요! ✊"
+                : "✋ 먼저 손을 인식시켜서 풍선에 손을 갖다대세요!";
           }
           if (balloonSvgRef.current) {
             const scale = 1 + (next / 100) * 0.3;
